@@ -14,24 +14,18 @@
   },
   "categories": [
     {
-  "name": "Gemini",
-  "items": [
-    {
-      "name": "Gemini Custom Prompt",
-      "desc": "Chat AI Gemini dengan prompt custom (system instruction).",
-      "path": "/ai/geminicostums?text=&prompt=",
-      "status": "ready",
-      "params": {
-        "prompt": "Instruksi atau kepribadian AI (opsional).",
-        "text": "Teks atau pertanyaan ke AI."
-      }
-    }
-  ]
-    },
-    
-    {
-      "name": "OpenAI",
+      "name": "AI",
       "items": [
+        {
+          "name": "Gemini Custom Prompt",
+          "desc": "Chat AI Gemini dengan prompt custom (system instruction).",
+          "path": "/ai/gemini?text=&prompt=",
+          "status": "ready",
+          "params": {
+            "prompt": "Instruksi atau kepribadian AI (opsional).",
+            "text": "Teks atau pertanyaan ke AI."
+          }
+        },
         {
           "name": "OpenAI Llama3",
           "desc": "Chat dengan model Llama3-8B-8192 Cepat dan cerdas.",
@@ -43,6 +37,7 @@
         }
       ]
     },
+    
     {
       "name": "Anime",
       "items": [
