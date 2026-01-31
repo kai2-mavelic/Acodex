@@ -231,6 +231,15 @@
           "params": {
             "url": "URL video Videy."
           }
+        },
+        {
+  "name": "Facebook Downloader",
+  "desc": "Mengunduh video Facebook (HD & SD) menggunakan SaveFBS.",
+  "path": "/download/facebook?url=",
+  "status": "ready",
+  "params": {
+    "url": "URL video Facebook (post / reel / video)."
+  }
         }
       ]
     },
