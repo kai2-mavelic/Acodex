@@ -1,26 +1,26 @@
 const axios = require("axios");
 
 /**
- * Gemini custom scraper
+ * Gemini Scraper (stable parser)
  */
-async function gemini({ message, instruction = "", sessionId = null }) {
-  if (!message) throw new Error("Message is required.");
+async function gemini({ text, prompt = "", sessionId = null }) {
+  if (!text) throw new Error("Text is required");
 
   let resumeArray = null;
   let cookie = null;
-  let savedInstruction = instruction;
+  let instruction = prompt || "";
 
+  // restore session
   if (sessionId) {
     try {
-      const sessionData = JSON.parse(
-        Buffer.from(sessionId, "base64").toString()
-      );
-      resumeArray = sessionData.resumeArray;
-      cookie = sessionData.cookie;
-      savedInstruction = instruction || sessionData.instruction || "";
+      const sess = JSON.parse(Buffer.from(sessionId, "base64").toString());
+      resumeArray = sess.resumeArray || null;
+      cookie = sess.cookie || null;
+      instruction = prompt || sess.instruction || "";
     } catch {}
   }
 
+  // get cookie
   if (!cookie) {
     const { headers } = await axios.post(
       "https://gemini.google.com/_/BardChatUi/data/batchexecute?rpcids=maGuAc",
@@ -31,11 +31,12 @@ async function gemini({ message, instruction = "", sessionId = null }) {
         },
       }
     );
-    cookie = headers["set-cookie"]?.[0]?.split("; ")[0] || "";
+    cookie = headers["set-cookie"]?.[0]?.split(";")[0];
+    if (!cookie) throw new Error("Failed to get Gemini cookie");
   }
 
   const body = [
-    [message, 0, null, null, null, null, 0],
+    [text, 0, null, null, null, null, 0],
     ["en-US"],
     resumeArray || ["", "", "", null, null, null, null, null, null, ""],
     null,
@@ -59,7 +60,7 @@ async function gemini({ message, instruction = "", sessionId = null }) {
     null,
     null,
     null,
-    ["", "", savedInstruction, null, null, null, null, null, 0],
+    ["", "", instruction, null, null, null, null, null, 0],
     null,
     null,
     1,
@@ -83,7 +84,9 @@ async function gemini({ message, instruction = "", sessionId = null }) {
 
   const { data } = await axios.post(
     "https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate",
-    new URLSearchParams({ "f.req": JSON.stringify(payload) }).toString(),
+    new URLSearchParams({
+      "f.req": JSON.stringify(payload),
+    }).toString(),
     {
       headers: {
         "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -92,26 +95,46 @@ async function gemini({ message, instruction = "", sessionId = null }) {
     }
   );
 
-  const match = Array.from(data.matchAll(/^\d+\n(.+?)\n/gm));
-  const real = JSON.parse(match.reverse()[3][1]);
-  const parsed = JSON.parse(real[0][2]);
+  // ===== SAFE PARSER =====
+  const chunks = Array.from(data.matchAll(/^\d+\n(.+?)\n/gm));
+  if (!chunks.length) throw new Error("Gemini response empty");
 
-  const newResumeArray = [...parsed[1], parsed[4][0][0]];
-  const text = parsed[4][0][1][0];
+  let parsed;
+  for (const c of chunks.reverse()) {
+    try {
+      const outer = JSON.parse(c[1]);
+      parsed = JSON.parse(outer[0][2]);
+      break;
+    } catch {}
+  }
+
+  if (!parsed) throw new Error("Failed to parse Gemini response");
+
+  const answer = parsed?.[4]?.[0]?.[1]?.[0];
+  const resume = parsed?.[1];
+  const last = parsed?.[4]?.[0]?.[0];
+
+  if (!answer) throw new Error("Gemini answer empty");
 
   const newSessionId = Buffer.from(
     JSON.stringify({
-      resumeArray: newResumeArray,
+      resumeArray: resume ? [...resume, last] : null,
       cookie,
-      instruction: savedInstruction,
+      instruction,
     })
   ).toString("base64");
 
-  return { text, sessionId: newSessionId };
+  return {
+    text: answer,
+    sessionId: newSessionId,
+  };
 }
 
+/**
+ * API Endpoint
+ */
 module.exports = function (app) {
-  app.get("/ai/geminicostums", async (req, res) => {
+  app.get("/ai/gemini", async (req, res) => {
     const { text, prompt, sessionId } = req.query;
 
     if (!text) {
@@ -122,10 +145,10 @@ module.exports = function (app) {
     }
 
     try {
-      const result = await gemini({
-        message: text,
-        instruction: prompt || "",
-        sessionId: sessionId || null,
+      const r = await gemini({
+        text,
+        prompt,
+        sessionId,
       });
 
       res.json({
@@ -133,14 +156,15 @@ module.exports = function (app) {
         creator: "Kado",
         model: "Gemini",
         prompt: prompt || null,
-        result: result.text,
-        sessionId: result.sessionId,
+        result: r.text,
+        sessionId: r.sessionId,
       });
-    } catch (err) {
+    } catch (e) {
       res.status(500).json({
         status: false,
+        creator: "Kado",
         message: "Gagal mengambil respons dari Gemini.",
-        error: err.message,
+        error: e.message,
       });
     }
   });
