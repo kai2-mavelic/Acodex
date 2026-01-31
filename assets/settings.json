@@ -17,15 +17,17 @@
       "name": "AI",
       "items": [
         {
-          "name": "Gemini Custom Prompt",
-          "desc": "Chat AI Gemini dengan prompt custom (system instruction).",
-          "path": "/ai/gemini?text=&prompt=",
-          "status": "ready",
-          "params": {
-            "prompt": "Instruksi atau kepribadian AI (opsional).",
-            "text": "Teks atau pertanyaan ke AI."
-          }
+  "name": "Gemini Custom Prompt",
+  "desc": "Chat AI Gemini dengan system instruction (prompt) custom. Jika prompt kosong, otomatis menggunakan default AcodexAI.",
+  "path": "/ai/gemini?text=&prompt=&session=",
+  "status": "ready",
+  "params": {
+    "text": "Teks atau pertanyaan ke AI (wajib).",
+    "prompt": "Instruksi atau kepribadian AI (opsional, default: AcodexAI).",
+    "session": "Session memory Gemini (opsional, untuk percakapan berkelanjutan)."
+  }
         },
+
         {
           "name": "OpenAI Llama3",
           "desc": "Chat dengan model Llama3-8B-8192 Cepat dan cerdas.",
