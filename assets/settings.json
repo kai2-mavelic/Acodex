@@ -14,6 +14,22 @@
   },
   "categories": [
     {
+  "name": "Gemini",
+  "items": [
+    {
+      "name": "Gemini Custom Prompt",
+      "desc": "Chat AI Gemini dengan prompt custom (system instruction).",
+      "path": "/ai/geminicostums?text=&prompt=",
+      "status": "ready",
+      "params": {
+        "prompt": "Instruksi atau kepribadian AI (opsional).",
+        "text": "Teks atau pertanyaan ke AI."
+      }
+    }
+  ]
+    },
+    
+    {
       "name": "OpenAI",
       "items": [
         {
