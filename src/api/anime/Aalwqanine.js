@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 
 module.exports = function (app) {
   const baseUrl = 'https://alqanime.net/';
-  const apiBase = 'https://Kado.dpdns.org/anime/alqanime';
+  const apiBase = 'https://flowfalcon.dpdns.org/anime/alqanime';
 
   const resolveImage = (img) => img?.startsWith('data:') ? null : img?.trim();
 
